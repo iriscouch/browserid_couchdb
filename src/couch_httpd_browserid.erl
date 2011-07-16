@@ -110,3 +110,5 @@ verify_id(VerifyURL, Assertion, Audience) ->
         % Handle other cases
         end
     end.
+
+% vim: sts=4 sw=4 et
