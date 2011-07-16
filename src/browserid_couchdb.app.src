@@ -1,12 +1,11 @@
-{application, browserid_couchdb,
- [
-  {description, ""},
-  {vsn, "1"},
-  {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
-  {mod, { browserid_couchdb_app, []}},
-  {env, []}
- ]}.
+{ application, browserid_couchdb
+, [ {description, "CouchDB BrowserID Authentication"}
+  , {vsn, "0.1.0"}
+  , {registered, []}
+  , {applications, [ kernel
+                   , stdlib
+                   ]}
+  , {mod, { browserid_couchdb_app, []}}
+  , {env, []}
+  ]
+}.
