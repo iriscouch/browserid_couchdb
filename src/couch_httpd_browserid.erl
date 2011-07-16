@@ -14,7 +14,7 @@
 -include("couch_db.hrl").
 -include("../ibrowse/ibrowse.hrl").
 
--export([authentication_handler/1, handle_id_req/2]).
+-export([authentication_handler/1, handle_id_req/1]).
 
 -import(couch_httpd, [header_value/2, send_method_not_allowed/2]).
 
@@ -44,7 +44,19 @@ authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
        Req
     end.
 
+
 % session handler
+handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) -> ok
+    , case couch_config:get("httpd", "browserid_verify_url", undefined)
+        of undefined -> ok
+            % Bad config.
+            , throw({missing_config_value, "Required config httpd/browserid_verify_url"})
+        ; VerifyURL -> ok
+            , handle_id_req(Req, VerifyURL)
+        end
+    .
+
+
 % Login handler with Browser ID.
 handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req, VerifyURL) ->
     ReqBody = MochiReq:recv_body(),
