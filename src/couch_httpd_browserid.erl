@@ -46,7 +46,7 @@ authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
 
 
 % session handler
-handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) -> ok
+handle_id_req(#httpd{method='POST'}=Req) -> ok
     , case couch_config:get("httpd", "browserid_verify_url", undefined)
         of undefined -> ok
             % Bad config.
@@ -58,7 +58,7 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) -> ok
 
 
 % Login handler with Browser ID.
-handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req, VerifyURL) ->
+handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req, VerifyURL) ->
     ReqBody = MochiReq:recv_body(),
     Form = case MochiReq:get_primary_header_value("content-type") of
         % content type should be json
@@ -75,14 +75,15 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req, VerifyURL) ->
     Assertion = couch_util:get_value("assertion", Form, ""),
     Audience = MochiReq:get_header_value("host"),
     case verify_id(VerifyURL, Assertion, Audience) of
-    {error, Reason} ->
+    {error, _Reason} ->
         % Send client an error response, couch_util:send_err ...
         not_implemented;
     ok ->
         % Set the cookie, send a redirect?
         not_implemented
     end;
-handle_id_req(Req, _VerifyURL) ->
+
+handle_id_req(_Req, _VerifyURL) ->
     % Send 405
     not_implemented.
 
@@ -105,12 +106,12 @@ verify_id(VerifyURL, Assertion, Audience) ->
     {error, Reason} ->
         ?LOG_INFO("Error on browserid request: ~p", [Reason]),
         {error, Reason};
-    {ibrowse_req_id, ReqId} ->
+    {ibrowse_req_id, _ReqId} ->
         % Will this ever be streaming?
         % Would that mean chunked-encoding?
         % Maybe support that
         not_implemented;
-    {ok, Code, Headers, Body} ->
+    {ok, Code, _Headers, Body} ->
         case list_to_integer(Code) of
         200 ->
             {Resp} = ?JSON_DECODE(Body),
