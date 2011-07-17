@@ -2,6 +2,12 @@
 
 This is a plugin for CouchDB to support Mozilla's BrowserID standard.
 
+## So Simple
+
+BrowserID is easier than traditional CouchDB accounts.
+
+Of course, when a user logs in, they automatically receive a standard Couch account in the `_users` database.
+
 ## Building
 
 Use Build CouchDB: https://github.com/iriscouch/build-couchdb
