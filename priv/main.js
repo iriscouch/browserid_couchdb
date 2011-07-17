@@ -43,41 +43,41 @@ function gotVerifiedEmail(assertion) {
       data: JSON.stringify(to_verify),
       dataType: "json",
       success: function(data, textStatus, jqXHR) {
-        var l = $("#header .login").removeClass('clickable');;
+        var l = $("#browserid .login").removeClass('clickable');;
         l.empty();
         l.css('opacity', '1');
-        l.append($("<span>").text("Yo, "))
-          .append($("<span>").text(data.email).addClass("username"))
-          .append($("<span>!</span>"));
-        l.append($('<div><a href="/" >(logout)</a></div>'));
+
+        l.append($('<span>').text("Hi ").addClass('greeting'))
+         .append($('<span>').text(data.email).addClass('username'))
+         .append($('<span>').text('.').addClass('farewell'));
+
+        l.append($('<a class="logout" href="/" >(logout)</a>'));
         l.unbind('click');
 
-        var iurl = 'http://www.gravatar.com/avatar/' +
-          Crypto.MD5($.trim(data.email).toLowerCase()) +
-          "?s=32";
-        $("<img>").attr('src', iurl).appendTo($("#header .picture"));
+        var iurl = 'http://www.gravatar.com/avatar/' + Crypto.MD5($.trim(data.email).toLowerCase()) + "?s=32";
+        $("<img>").attr('src', iurl).appendTo($("#browserid .picture"));
 
         loggedIn(data.email);
       },
       error: function(jqXHR, textStatus, errorThrown) {
-        $("#header .login").css('opacity', '1');
+        $("#browserid .login").css('opacity', '1');
       }
     });
   } else {
     // something went wrong!  the user isn't logged in.
-    $("#header .login").css('opacity', '1');
+    $("#browserid .login").css('opacity', '1');
   }
 }
 
 $(document).ready(function() {
-  $("#header .login").show().click(function() {
-    $("#header .login").css('opacity', '0.5');
+  $("#browserid .login").show().click(function() {
+    $("#browserid .login").css('opacity', '0.5');
     navigator.id.getVerifiedEmail(gotVerifiedEmail);
   }).addClass("clickable");
 });
 
 document.addEventListener("login", function(event) {
-  $("#header .login").css('opacity', '0.5');
+  $("#browserid .login").css('opacity', '0.5');
   navigator.id.getVerifiedEmail(gotVerifiedEmail);
 },false);
 

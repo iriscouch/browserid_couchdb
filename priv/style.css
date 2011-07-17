@@ -1,4 +1,12 @@
-.login.clickable:hover {
-  opacity: .7;
+#browserid .login.clickable:hover {
+  opacity: .75;
   cursor: pointer;
+}
+
+#browserid .picture {
+  margin: 0.5em;
+}
+
+#browserid a.logout {
+  margin-left: 0.2em;
 }
