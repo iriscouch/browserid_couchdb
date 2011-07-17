@@ -48,8 +48,8 @@ browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
 handle_id_req(#httpd{method='GET'}=Req) -> ok
     , case code:priv_dir(browserid_couchdb)
         of {error, bad_name} -> ok
-            , Message = "Cannot find browserid helper files"
-            , ?LOG_ERROR(Message, [])
+            , Message = <<"Cannot find browserid helper files">>
+            , ?LOG_ERROR("~s", [Message])
             , couch_httpd:send_json(Req, 500, {[{error, Message}]})
         ; Priv_dir -> ok
             , send_from_dir(Req, Priv_dir)
