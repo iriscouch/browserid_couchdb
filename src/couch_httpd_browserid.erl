@@ -96,6 +96,7 @@ verify_id(VerifyURL, Assertion, Audience) ->
     %% #url{protocol = https} ->
     %%     % Maybe don't allow non-https providers?
 
+    ?LOG_DEBUG("Verifying browserid audience: ~s", [Audience]),
     ?LOG_DEBUG("Verifying browserid assertion: ~s", [Assertion]),
     % Verify ALL the things!
 
