@@ -82,7 +82,7 @@ document.addEventListener("login", function(event) {
 },false);
 
 document.addEventListener("logout", function(event) {
-  window.location.href = "/";
+  window.location.reload(true);
 },false);
 
 setSessions();
