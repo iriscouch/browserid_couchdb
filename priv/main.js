@@ -5,23 +5,10 @@ function setSessions(val) {
 } 
 
 function loggedIn(email) {
-  setSessions([ { email: email } ]);
+  var info = {"email":email};
+  setSessions([ info ]);
 
-  $("#content .intro").fadeOut(700, function() {
-    $("#content .business").fadeIn(300, function() {
-    });
-  });
-
-  // enter causes us to save the value and do a little animation
-  $('input').keypress(function(e){
-    if(e.which == 13) {
-      window.localStorage.setItem(email, $("input").val());
-      $("#content input").fadeOut(200).fadeIn(400);
-      e.preventDefault();
-    }
-  });
-
-  $("input").val(window.localStorage.getItem(email));
+  $(document).trigger('on_browserid_login', [info]);
 }
 
 function gotVerifiedEmail(assertion) {
@@ -55,6 +42,7 @@ function gotVerifiedEmail(assertion) {
 
         loggedIn(data.email);
       },
+
       error: function(jqXHR, textStatus, errorThrown) {
         $("#browserid .login").css('opacity', '1');
       }
@@ -72,14 +60,61 @@ $(document).ready(function() {
   }).addClass("clickable");
 });
 
-document.addEventListener("login", function(event) {
+
+// You can programatically start a login or logout by running
+//   $(document).trigger('browserid_login');
+//   or
+//   $(document).trigger('browserid_logout');
+$(document).bind('browserid_login', function(event) {
   $("#browserid .login").css('opacity', '0.5');
   navigator.id.getVerifiedEmail(gotVerifiedEmail);
-},false);
+});
 
-document.addEventListener("logout", function(event) {
+$(document).bind("browserid_logout", function(event, info) {
   window.location.reload(true);
-},false);
+});
+
+
+// A convenience API to trigger and be notified of login and logout.
+//
+// Start the login process:
+// $.couch.browserid.login();
+//
+// Be notified of a successful login:
+// $.couch.browserid.login(function(info) { });
+//
+// Log out:
+// $.couch.browserid.logout();
+//
+// Be notified of a logout:
+// $.couch.browserid.logout(function(info) { });
+
+$.couch           = $.couch || {};
+$.couch.browserid = $.couch.browserid || {};
+
+$.couch.browserid.login = function(callback) {
+  if(callback)
+    $(document).bind('on_browserid_login', callback);
+  else
+    $(document).trigger('browserid_login');
+};
+
+$.couch.browserid.logout = function(callback) {
+  if(callback)
+    $(document).bind('on_browserid_logout', callback);
+  else
+    $(document).trigger('browserid_logout');
+};
+
+$.couch.browserid.login(function(info) {
+  debugger;
+  return 23;
+})
+
+$.couch.browserid.logout(function(ev) {
+  // This is an example callback after a successful logout.
+  console.log('LOGOUT');
+})
 
 setSessions();
 
