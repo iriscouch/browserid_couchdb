@@ -27,10 +27,20 @@ function loggedIn(email) {
 function gotVerifiedEmail(assertion) {
   if (assertion) {
     // Now we'll send this assertion over to the verification server for validation
-    var url = "https://browserid.org/verify?assertion=" + window.encodeURIComponent(assertion) +
-      "&audience=" + window.encodeURIComponent(window.location.host);
+
+    // Verify through CouchDB.
+    //var url = "https://browserid.org/verify?assertion=" + window.encodeURIComponent(assertion) +
+    //  "&audience=" + window.encodeURIComponent(window.location.host);
+    var url = '/_browserid';
+    var to_verify = { 'assertion': window.encodeURIComponent(assertion)
+                    , 'audience' : window.encodeURIComponent(window.location.host)
+                    };
+
     $.ajax({
       url: url,
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(to_verify),
       dataType: "json",
       success: function(data, textStatus, jqXHR) {
         var l = $("#header .login").removeClass('clickable');;
