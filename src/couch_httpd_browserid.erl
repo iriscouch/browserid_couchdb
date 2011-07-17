@@ -14,16 +14,16 @@
 -include("couch_db.hrl").
 -include("../ibrowse/ibrowse.hrl").
 
--export([authentication_handler/1, handle_id_req/1]).
+-export([browserid_authentication_handler/1, handle_id_req/1]).
 
 -import(couch_httpd, [header_value/2, send_method_not_allowed/2]).
 
 %% TODO: 
 %% * Set SSL options so we verify the providers cert
-%% * Possibly auto-create user doc in authentication_handler/1
+%% * Possibly auto-create user doc in browserid_authentication_handler/1
 %% * Do something sane with providers other than browserid.org
 
-authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
+browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
     case MochiReq:get_cookie_value("BrowserIDAssertion") of
     undefined -> Req;
     [] -> Req;
