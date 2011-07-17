@@ -111,16 +111,6 @@ $.couch.browserid.logout = function(callback) {
     $(document).trigger('browserid_logout');
 };
 
-$.couch.browserid.login(function(info) {
-  debugger;
-  return 23;
-})
-
-$.couch.browserid.logout(function(ev) {
-  // This is an example callback after a successful logout.
-  console.log('LOGOUT');
-})
-
 setSessions();
 
 })();
