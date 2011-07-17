@@ -4,9 +4,88 @@ This is a plugin for CouchDB to support Mozilla's BrowserID standard.
 
 ## So Simple
 
-BrowserID is easier than traditional CouchDB accounts.
+Put this in your Couch app.
 
-Of course, when a user logs in, they automatically receive a standard Couch account in the `_users` database.
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <script src="/_browserid/include.js" type="text/javascript"></script>
+
+        <!-- Optional styles -->
+        <link rel="stylesheet" type="text/css" href="/_browserid/style.css">
+      </head>
+
+      <body>
+        <div id="browserid">
+          <div class="login"><img src="/_browserid/sign_in_blue.png"></div>
+          <div class="picture"></div>
+        </div>
+
+        Hello, BrowserID world!
+      </body>
+
+      <!-- Optional (recommended) convenience API -->
+      <script src="/_utils/script/jquery.js" type="text/javascript"></script>
+      <script src="/_browserid/main.js" type="text/javascript"></script>
+    </html>
+
+You're done!
+
+That is a complete, working CouchDB login page.  All you need is a `browserid` div with another called `login` inside.
+
+CouchDB supports automatic new account creation and a traditional session cookie. User accounts haven't changed. They are still documents in the `_users` database. You can set roles and replicate them as before. The only changes are
+
+* Users log in through BrowserID instead of passwords
+* The first time a user logs in, CouchDB will create an account for them.
+
+### Logging in and out programatically
+
+If you use the convenience API, `/_browserid/main.js`, you can start the login or logout process from Javascript:
+
+    // Start the login process, which pops up the BrowserID window.
+    $.couch.browserid.login();
+
+    // Start the logout process, which ends the user's session.
+    $.couch.browserid.logout();
+
+Upon login, the `.login` div will contain a welcome message for the user. Use jQuery and CSS to modify or style it as needed. It will look like this:
+
+    <span class="greeting">Hi </span>
+    <span class="username">me@example.com</span>
+    <span class="farewell">.</span>
+    <a class="logout" href="/">(logout)</a>
+
+Additionally, the `.picture` div will contain a Gravatar image for the user's email address.
+
+### Login and logout events
+
+To be notified when the login or logout phase completes, use the same functions with a callback.
+
+    // This will run when login is done.
+    $.couch.browserid.login(function(error, user) {
+      if(error)
+        return console.log("Something went wrong with login: " + error);
+
+      console.log("Congratulations " + user.email + ", you now have an account on my couch");
+    });
+
+    // This will run when logout is done.
+    $.couch.browserid.logout(function(error) {
+      if(error)
+        return console.log("Something went wrong with logout: " + error);
+
+      console.log("Sorry to see you go!");
+    })
+
+### Advanced usage
+
+If you are a BrowserID whiz and prefer to do your own thing, then include only the `/_browserid/include.js` file and no others. To verify your membership assertion, POST an `application/json` body to `/_browserid`, such as this:
+
+    { "assertion": "<the assertion string goes here>"
+    , "audience" : "example.com:80"
+    }
+
+The response will be the same as `https://browserid.org/verify`. That URL is currently used for verification. You can use a different one by changing `/_config/httpd/browserid_verify_url`.
 
 ## Building
 
