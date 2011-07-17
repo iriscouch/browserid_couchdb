@@ -45,6 +45,17 @@ browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
     end.
 
 
+handle_id_req(#httpd{method='GET'}=Req) -> ok
+    , case code:priv_dir(browserid_couchdb)
+        of {error, bad_name} -> ok
+            , Message = "Cannot find browserid helper files"
+            , ?LOG_ERROR(Message, [])
+            , couch_httpd:send_json(Req, 500, {[{error, Message}]})
+        ; Priv_dir -> ok
+            , send_from_dir(Req, Priv_dir)
+        end
+    ;
+
 % Login handler with Browser ID.
 handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) ->
     ReqBody = MochiReq:recv_body(),
@@ -136,5 +147,14 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
                     end
             end
     end.
+
+
+%
+% Utilities
+%
+
+send_from_dir(Req, Dir) -> ok
+    , couch_httpd_misc_handlers:handle_utils_dir_req(Req, Dir)
+    .
 
 % vim: sts=4 sw=4 et
