@@ -10,7 +10,7 @@ function loggedIn(email) {
   var info = {"email":email};
   setSessions([ info ]);
 
-  $(document).trigger('on_browserid_login', [info]);
+  $(document).trigger('on_browserid_login', [null, info]);
 }
 
 function gotVerifiedEmail(assertion) {
@@ -52,6 +52,7 @@ function gotVerifiedEmail(assertion) {
   } else {
     // something went wrong!  the user isn't logged in.
     $("#browserid .login").css('opacity', '1');
+    $(document).trigger('on_browserid_login', [new Error("BrowserID assertion failed")]);
   }
 }
 
@@ -75,7 +76,7 @@ $(document).bind('browserid_login', function(event) {
   start_login();
 });
 
-$(document).bind("browserid_logout", function(event, info) {
+$(document).bind("browserid_logout", function(event) {
   $.ajax({ url : '/_session'
          , type: 'DELETE'
          , dataType: 'json'
@@ -84,11 +85,11 @@ $(document).bind("browserid_logout", function(event, info) {
          });
 
   function on_success(data, textStatus, jqXHR) {
-    $(document).trigger('on_browserid_logout', [info]);
+    $(document).trigger('on_browserid_logout');
   }
 
   function on_error(data, textStatus, errorThrown) {
-    throw(errorThrown);
+    $(document).trigger('on_browserid_logout', [errorThrown]);
   }
 });
 
@@ -99,13 +100,13 @@ $(document).bind("browserid_logout", function(event, info) {
 // $.couch.browserid.login();
 //
 // Be notified of a successful login:
-// $.couch.browserid.login(function(info) { });
+// $.couch.browserid.login(function(err, info) { if(err) throw err; });
 //
 // Log out:
 // $.couch.browserid.logout();
 //
 // Be notified of a logout:
-// $.couch.browserid.logout(function(info) { });
+// $.couch.browserid.logout(function(err) { if(err) throw err; });
 
 $.couch           = $.couch || {};
 $.couch.browserid = $.couch.browserid || {};
