@@ -50,10 +50,12 @@ If you use the convenience API, `/_browserid/main.js`, you can start the login o
 
 Upon login, the `.login` div will contain a welcome message for the user. Use jQuery and CSS to modify or style it as needed. It will look like this:
 
-    <span class="greeting">Hi </span>
-    <span class="username">me@example.com</span>
-    <span class="farewell">.</span>
-    <a class="logout" href="/">(logout)</a>
+    <div class="login">
+      <span class="greeting">Hi </span>
+      <span class="username">me@example.com</span>
+      <span class="farewell">.</span>
+      <a class="logout" href="/">(logout)</a>
+    </div>
 
 Additionally, the `.picture` div will contain a Gravatar image for the user's email address.
 
