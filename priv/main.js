@@ -1,3 +1,5 @@
+(function() {
+
 function setSessions(val) {
   if (navigator.id) {
     navigator.id.sessions = val ? val : [ ];
@@ -55,10 +57,14 @@ function gotVerifiedEmail(assertion) {
 
 $(document).ready(function() {
   $("#browserid .login").show().click(function() {
-    $("#browserid .login").css('opacity', '0.5');
-    navigator.id.getVerifiedEmail(gotVerifiedEmail);
+    start_login();
   }).addClass("clickable");
 });
+
+function start_login() {
+  $("#browserid .login").css('opacity', '0.5');
+  navigator.id.getVerifiedEmail(gotVerifiedEmail);
+}
 
 
 // You can programatically start a login or logout by running
@@ -66,8 +72,7 @@ $(document).ready(function() {
 //   or
 //   $(document).trigger('browserid_logout');
 $(document).bind('browserid_login', function(event) {
-  $("#browserid .login").css('opacity', '0.5');
-  navigator.id.getVerifiedEmail(gotVerifiedEmail);
+  start_login();
 });
 
 $(document).bind("browserid_logout", function(event, info) {
@@ -117,6 +122,8 @@ $.couch.browserid.logout(function(ev) {
 })
 
 setSessions();
+
+})();
 
 //
 // http://crypto-js.googlecode.com/files/2.2.0-crypto-md5.js
