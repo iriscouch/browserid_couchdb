@@ -1,0 +1,133 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'lucida grande', helvetica, arial, sans-serif;
+}
+
+#header {
+    background-color: #143352;
+    color: #ddd;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 100%;
+    border-bottom: 2px solid rgba(15, 38, 61, 0.5);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+    -moz-box-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+    -webkit-box-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+    -moz-box-shadow: 0 0 0 black;
+    z-index: 10;
+    opacity: .8;
+
+    > div {
+        width: 750px;
+        margin: auto;
+    }
+
+    .title {
+        font-family: "Special Elite";
+        font-size: 3em;
+        margin-top: 10px;
+        float: left;
+    }
+
+    .picture {
+        float: right;
+        margin: 10px;
+    }
+    .login {
+        float: right;
+        margin-top: 10px;
+        img {
+            margin-top: 3px;
+        }
+        .username {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        div a {
+            font-size: .7em;
+            color: #ccc;
+        }
+        text-align: center;
+    }
+    .clickable:hover {
+        opacity: .5;
+        cursor: pointer;
+    }
+}
+
+#content {
+    position: fixed;
+    color: #fff;
+    padding-top: 50px;
+    top: 0px;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    background-color: rgb(220, 217, 202);
+    background-image:url('i/236037776_f8b7e0564d_o.jpg');
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    background-position:center;
+
+    .intro, .business {
+        width: 600px;
+        margin: auto;
+        color: #333;
+        font-size: 2em;
+        font-family: "Shadows Into Light";
+        text-align: center;
+    }
+
+    .business input {
+        background-color: transparent;
+        border: 1px solid #999;
+        font-family: "Shadows Into Light";
+        padding: .4em;
+        font-size: 3em;
+        width: 500px;
+        border-radius: 50px 50px 50px 50px;
+        -moz-border-radius: 50px;
+        -webkit-border-radius: 50px;
+    }
+}
+
+#footer {
+    background-color: #9d9d9d;
+    color: #313131;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 75px;
+    opacity: .8;
+
+    a {
+        color: #000;
+    }
+
+    a:hover {
+        opacity: .5;
+    }
+
+    > div {
+        width: 600px;
+        margin: auto;
+        margin-top: 10px;
+        font-size: .8em;
+        text-align: center;
+        img {
+            margin-bottom: -.5em;
+        }
+        font-weight: 200;
+    }
+
+    .smallPrint {
+        font-size: .8em;
+        opacity: .8;
+        margin-top: 1.5em;
+    }
+}

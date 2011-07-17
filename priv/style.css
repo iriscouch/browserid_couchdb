@@ -1,0 +1,4 @@
+.login.clickable:hover {
+  opacity: .7;
+  cursor: pointer;
+}
