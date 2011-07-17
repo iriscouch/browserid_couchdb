@@ -56,10 +56,7 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) ->
         % Send client an error response, couch_util:send_err ...
         not_implemented;
     {ok, Verified_obj} -> ok
-        % tilgovi: Set the cookie, send a redirect?
-        % JasonSmith: Does a bear wear a funny hat?
-        , ?LOG_DEBUG("Verified:\n~p", [Verified_obj])
-        , couch_httpd:send_json(Req, 200, {Verified_obj})
+        , send_good_id(Req, Verified_obj)
     end;
 
 handle_id_req(_Req) ->
@@ -127,6 +124,39 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
     end.
 
 
+send_good_id(Req, Verified_obj) -> ok
+    , case couch_util:get_value(<<"email">>, Verified_obj)
+        of undefined -> ok
+            , ?LOG_ERROR("Email address not in verification object: ~p", [Verified_obj])
+            , throw({error, bad_verification})
+        ; Email -> ok
+            , send_good_id(Req, Verified_obj, Email)
+        end
+    .
+
+send_good_id(Req, Verified_obj, Email) -> ok
+    % Set the authenticated session cookie.
+    , Secret = ?l2b(ensure_cookie_auth_secret())
+
+    % XXX
+    , UserSalt = <<"usersalt">>
+    , UserName = Email
+
+    , CurrentTime = make_cookie_time()
+    , Cookie = cookie_auth_cookie(Req, ?b2l(UserName), <<Secret/binary, UserSalt/binary>>, CurrentTime)
+    % , ?LOG_INFO("=========\nCookie\n~p", [Cookie])
+
+    , Headers = [Cookie]
+    , couch_httpd:send_json(Req, 200, Headers, {Verified_obj})
+    %, send_json(Req#httpd{req_body=ReqBody}, Code, Headers
+    %        {[
+    %            {ok, true},
+    %            {name, couch_util:get_value(<<"name">>, User, null)},
+    %            {roles, couch_util:get_value(<<"roles">>, User, [])}
+    %        ]});
+    .
+
+
 %
 % Utilities
 %
@@ -134,5 +164,33 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
 send_from_dir(Req, Dir) -> ok
     , couch_httpd_misc_handlers:handle_utils_dir_req(Req, Dir)
     .
+
+
+% These are not exported from couch_httpd_auth.
+ensure_cookie_auth_secret() ->
+    case couch_config:get("couch_httpd_auth", "secret", nil) of
+        nil ->
+            NewSecret = ?b2l(couch_uuids:random()),
+            couch_config:set("couch_httpd_auth", "secret", NewSecret),
+            NewSecret;
+        Secret -> Secret
+    end.
+
+make_cookie_time() ->
+    {NowMS, NowS, _} = erlang:now(),
+    NowMS * 1000000 + NowS.
+
+cookie_auth_cookie(Req, User, Secret, TimeStamp) ->
+    SessionData = User ++ ":" ++ erlang:integer_to_list(TimeStamp, 16),
+    Hash = crypto:sha_mac(Secret, SessionData),
+    mochiweb_cookies:cookie("AuthSession",
+        couch_util:encodeBase64Url(SessionData ++ ":" ++ ?b2l(Hash)),
+        [{path, "/"}, cookie_scheme(Req)]).
+
+cookie_scheme(#httpd{mochi_req=MochiReq}) ->
+    case MochiReq:get(scheme) of
+        http -> {http_only, true};
+        https -> {secure, true}
+    end.
 
 % vim: sts=4 sw=4 et
