@@ -76,7 +76,20 @@ $(document).bind('browserid_login', function(event) {
 });
 
 $(document).bind("browserid_logout", function(event, info) {
-  window.location.reload(true);
+  $.ajax({ url : '/_session'
+         , type: 'DELETE'
+         , dataType: 'json'
+         , success: on_success
+         , error  : on_error
+         });
+
+  function on_success(data, textStatus, jqXHR) {
+    $(document).trigger('on_browserid_logout', [info]);
+  }
+
+  function on_error(data, textStatus, errorThrown) {
+    throw(errorThrown);
+  }
 });
 
 
