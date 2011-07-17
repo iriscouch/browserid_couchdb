@@ -46,7 +46,7 @@ browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
 
 
 % Login handler with Browser ID.
-handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req) ->
+handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) ->
     ReqBody = MochiReq:recv_body(),
     Form = case MochiReq:get_primary_header_value("content-type") of
         % content type should be json
@@ -66,9 +66,11 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req) ->
     {error, _Reason} ->
         % Send client an error response, couch_util:send_err ...
         not_implemented;
-    ok ->
-        % Set the cookie, send a redirect?
-        not_implemented
+    {ok, Verified_obj} -> ok
+        % tilgovi: Set the cookie, send a redirect?
+        % JasonSmith: Does a bear wear a funny hat?
+        , ?LOG_DEBUG("Verified:\n~p", [Verified_obj])
+        , couch_httpd:send_json(Req, 200, {Verified_obj})
     end;
 
 handle_id_req(_Req) ->
@@ -115,17 +117,24 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
         % Would that mean chunked-encoding?
         % Maybe support that
         not_implemented;
-    {ok, Code, _Headers, Body} ->
-        case list_to_integer(Code) of
-        200 ->
-            {Resp} = ?JSON_DECODE(Body),
-            ?LOG_DEBUG("Verification response from ~s: ~p", [VerifyURL, Resp]),
-            case couch_util:get_value(<<"status">>, Resp) of
-            <<"okay">> ->
-                ok
+
+    {ok, Code, Headers, Body} -> ok
+        , case list_to_integer(Code)
+            of Err_code when Err_code =/= 200 -> ok
+                , ?LOG_DEBUG("Bad response from verification service:\n~p\n~p\n~p", [Err_code, Headers, Body])
+                , {error, bad_verification_check}
+            ; 200 -> ok
+                , {Resp} = ?JSON_DECODE(Body)
+                , ?LOG_DEBUG("Verification service response:\n~p", [Resp])
+                , case couch_util:get_value(<<"status">>, Resp)
+                    of <<"okay">> -> ok
+                        , ?LOG_DEBUG("BrowserID verified: ~p", [Resp])
+                        , {ok, Resp}
+                    ; _Not_ok -> ok
+                        , ?LOG_DEBUG("Failed verification from ~s:\n~p", [VerifyURL, Resp])
+                        , {error, failed_verification}
+                    end
             end
-        % Handle other cases
-        end
     end.
 
 % vim: sts=4 sw=4 et
