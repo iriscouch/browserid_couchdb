@@ -14,7 +14,7 @@
 -include("couch_db.hrl").
 -include("../ibrowse/ibrowse.hrl").
 
--export([browserid_authentication_handler/1, handle_id_req/1]).
+-export([handle_id_req/1]).
 
 -import(couch_httpd, [header_value/2, send_method_not_allowed/2]).
 
@@ -22,28 +22,6 @@
 %% * Set SSL options so we verify the providers cert
 %% * Possibly auto-create user doc in browserid_authentication_handler/1
 %% * Do something sane with providers other than browserid.org
-
-browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
-    case MochiReq:get_cookie_value("BrowserIDAssertion") of
-    undefined -> Req;
-    [] -> Req;
-    Cookie ->
-        % This format could be changed still
-        % Not sure what's good
-        [_User, _TimeStr, _Assertion] = try
-            string:tokens(?b2l(couch_util:decodeBase64Url(Cookie)), ":")
-        catch
-            _:_Error ->
-                Reason = <<"Malformed browserid cookie. "
-                           "Please clear your cookies.">>,
-                throw({bad_request, Reason})
-        end,
-        % Verify cookie expire, check auth cache, etc
-        % Possibly call verify/2 if not cached
-        % Set the user context on Req
-       Req
-    end.
-
 
 handle_id_req(#httpd{method='GET'}=Req) -> ok
     , case code:priv_dir(browserid_couchdb)
