@@ -26,11 +26,7 @@ function loggedIn(email) {
 
 function gotVerifiedEmail(assertion) {
   if (assertion) {
-    // Now we'll send this assertion over to the verification server for validation
-
     // Verify through CouchDB.
-    //var url = "https://browserid.org/verify?assertion=" + window.encodeURIComponent(assertion) +
-    //  "&audience=" + window.encodeURIComponent(window.location.host);
     var url = '/_browserid';
     var to_verify = { 'assertion': window.encodeURIComponent(assertion)
                     , 'audience' : window.encodeURIComponent(window.location.host)
@@ -43,7 +39,7 @@ function gotVerifiedEmail(assertion) {
       data: JSON.stringify(to_verify),
       dataType: "json",
       success: function(data, textStatus, jqXHR) {
-        var l = $("#browserid .login").removeClass('clickable');;
+        var l = $("#browserid .login").removeClass('clickable');
         l.empty();
         l.css('opacity', '1');
 
