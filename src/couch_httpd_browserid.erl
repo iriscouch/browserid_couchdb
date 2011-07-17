@@ -45,20 +45,8 @@ browserid_authentication_handler(#httpd{mochi_req=MochiReq}=Req) ->
     end.
 
 
-% session handler
-handle_id_req(#httpd{method='POST'}=Req) -> ok
-    , case couch_config:get("httpd", "browserid_verify_url", undefined)
-        of undefined -> ok
-            % Bad config.
-            , throw({missing_config_value, "Required config httpd/browserid_verify_url"})
-        ; VerifyURL -> ok
-            , handle_id_req(Req, VerifyURL)
-        end
-    .
-
-
 % Login handler with Browser ID.
-handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req, VerifyURL) ->
+handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req) ->
     ReqBody = MochiReq:recv_body(),
     Form = case MochiReq:get_primary_header_value("content-type") of
         % content type should be json
@@ -74,7 +62,7 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req, VerifyURL) ->
     end,
     Assertion = couch_util:get_value("assertion", Form, ""),
     Audience = MochiReq:get_header_value("host"),
-    case verify_id(VerifyURL, Assertion, Audience) of
+    case verify_id(Assertion, Audience) of
     {error, _Reason} ->
         % Send client an error response, couch_util:send_err ...
         not_implemented;
@@ -83,11 +71,26 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=_Req, VerifyURL) ->
         not_implemented
     end;
 
-handle_id_req(_Req, _VerifyURL) ->
+handle_id_req(_Req) ->
     % Send 405
     not_implemented.
 
-verify_id(VerifyURL, Assertion, Audience) ->
+
+verify_id(Assertion, Audience) -> ok
+    % TODO: Verify without depending on the Mozilla crutch verification web service.
+    %       * https://wiki.mozilla.org/Identity/Verified_Email_Protocol
+    %       * https://github.com/mozilla/browserid/tree/master/verifier
+    , case couch_config:get("httpd", "browserid_verify_url", undefined)
+        of undefined -> ok
+            % Bad config.
+            , throw({missing_config_value, "Required config httpd/browserid_verify_url"})
+        ; VerifyURL -> ok
+            , verify_id_with_crutch(VerifyURL, Assertion, Audience)
+        end
+    .
+
+
+verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
     VerifyQS = "?assertion=" ++ Assertion ++ "&audience=" ++ Audience,
 
     %% VerifyURL = ?l2b(couch_util:get_value("verify_url", Form,
