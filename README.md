@@ -10,16 +10,34 @@ Use Build CouchDB: https://github.com/iriscouch/build-couchdb
 
 ## Installation
 
-By using Build CouchDB, this is already done!
+Build CouchDB already took care of this step!
 
 ## Development
 
-This is what I do. It's not perfect but in my view barely harder than building a fork of CouchDB, and it allows 1.0.x, 1.1.x, as well as trunk support.
+This is what I do. It's not perfect but barely harder than building a fork of CouchDB, and it allows 1.0.x, 1.1.x, as well as trunk support.
 
-First, teach rebar where to find CouchDB.
+This example assumes three Git checkouts, side-by-side:
 
+* `couchdb` - Perhaps a trunk checkout, but could be any tag or branch
+* `build-couchdb` - For the boring Couch dependencies
+* `browserid_couchdb` - This code
+
+### Build dependencies plus couch
+
+Feel free to skip this if you are Randall Leeds. (Hi, Randall!)
+
+    cd couchdb
+    rake -f ../build-couchdb/Rakefile couchdb:configure
+    # Go get coffee. This builds the deps, then runs the boostrap and configure scripts
+    make dev
+
+Next, teach rebar where to find CouchDB, and teach Erlang and Couch where to find this plugin.
+
+    cd ../browserid_couchdb
     export ERL_COMPILER_OPTIONS='[{i, "../couchdb/src/couchdb"}]'
+    export ERL_ZFLAGS="-pz $PWD/ebin"
+    ln -s "../../../../browserid_couchdb/etc/couchdb/default.d/browserid.ini" ../couchdb/etc/couchdb/default.d
 
-Then run this every time you change the code:
+You're ready. Run this every time you change the code:
 
-    ./rebar compile && cp ebin/*.beam ../couchdb/src/couchdb && cp etc/couchdb/default.d/*.ini ../couchdb/etc/couchdb/default.d/ && ( cd ../couchdb && ./utils/run -i )
+    ./rebar compile && ../couchdb/utils/run -i
