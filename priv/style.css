@@ -2,6 +2,10 @@
   display: none;
 }
 
+#browserid div.login {
+  display: inline;
+}
+
 #browserid .login.pending {
   opacity: 0.5;
 }
