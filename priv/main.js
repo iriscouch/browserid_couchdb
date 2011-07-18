@@ -28,42 +28,60 @@ function gotVerifiedEmail(assertion) {
       data: JSON.stringify(to_verify),
       dataType: "json",
       success: function(data, textStatus, jqXHR) {
-        var l = $("#browserid .login").removeClass('clickable');
-        l.empty();
-        l.css('opacity', '1');
-
-        l.append($('<span>').text("Hi ").addClass('greeting'))
-         .append($('<span>').text(data.email).addClass('username'))
-         .append($('<span>').text('.').addClass('farewell'));
-
-        l.append($('<a class="logout" href="/" >(logout)</a>'));
-        l.unbind('click');
-
-        var iurl = 'http://www.gravatar.com/avatar/' + Crypto.MD5($.trim(data.email).toLowerCase()) + "?s=32";
-        $("<img>").attr('src', iurl).appendTo($("#browserid .picture"));
-
         loggedIn(data.email);
       },
 
       error: function(jqXHR, textStatus, errorThrown) {
-        $("#browserid .login").css('opacity', '1');
+        $("#browserid .login"); // .css('opacity', '1');
       }
     });
   } else {
     // something went wrong!  the user isn't logged in.
-    $("#browserid .login").css('opacity', '1');
+    $("#browserid .login").removeClass('pending');
     $(document).trigger('on_browserid_login', [new Error("BrowserID assertion failed")]);
   }
 }
 
 $(document).ready(function() {
-  $("#browserid .login").show().click(function() {
-    start_login();
-  }).addClass("clickable");
+  var widget = $('#browserid .login');
+  var state = $('<span class="state">Login...</span>');
+
+  widget.append(state);
+  $.ajax({ url : '/_session'
+         , dataType: 'json'
+         , success: on_success
+         , error  : on_error
+         });
+
+  function on_success(session, textStatus, jqXHR) {
+    on_session(session);
+  }
+
+  function on_error(data, textStatus, errorThrown) {
+    on_session({name:null, roles:[]});
+  }
+
+  function on_session(session) {
+    state.remove();
+
+    var is_email = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)$/i
+
+    if(session && session.userCtx && is_email.test(session.userCtx.name)) {
+      // Logged in.
+      loggedIn(session.userCtx.name);
+    } else {
+      // Not logged in.
+      widget.find('> img').show();
+      widget.addClass("clickable");
+      widget.click(function() {
+        start_login();
+      });
+    }
+  }
 });
 
 function start_login() {
-  $("#browserid .login").css('opacity', '0.5');
+  $("#browserid .login").addClass('pending');
   navigator.id.getVerifiedEmail(gotVerifiedEmail);
 }
 
@@ -124,6 +142,64 @@ $.couch.browserid.logout = function(callback) {
   else
     $(document).trigger('browserid_logout');
 };
+
+
+// Some UI tricks for login and logout.
+
+$.couch.browserid.login(function(ev, er, data) {
+  if(er)
+    return;
+
+  var widget = $("#browserid .login").removeClass('clickable');
+
+  var bid_icon = widget.find('> img');
+  bid_icon.hide();
+
+  widget.removeClass('pending');
+
+  widget.append($('<span>').text("Hi ").addClass('greeting'))
+   .append($('<span>').text(data.email).addClass('username'))
+   .append($('<span>').text('.').addClass('farewell'));
+
+  widget.unbind('click');
+
+  var iurl = 'http://www.gravatar.com/avatar/' + Crypto.MD5($.trim(data.email).toLowerCase()) + "?s=32";
+  var gravatar_img = $("<img>").attr('src', iurl);
+  gravatar_img.appendTo($("#browserid .picture"));
+
+  var logout = $('<a class="logout" href="/" >(logout)</a>');
+  logout.click(function(ev) {
+    widget.addClass('pending');
+    logout.addClass('logging_out').text('Logging out...');
+
+    $.couch.browserid.logout();
+
+    ev.preventDefault();
+    return false;
+  });
+
+  widget.append(logout);
+});
+
+$.couch.browserid.logout(function(ev, er) {
+  if(er)
+    return;
+
+  var widget = $('#browserid .login');
+  var icon = widget.find('> img');
+
+  widget.show().removeClass('pending');
+  icon.show();
+
+  $('#browserid .picture').empty();
+  widget.find('span').remove();
+  widget.find('a.logout').remove();
+
+  widget.addClass("clickable");
+  widget.click(function() {
+    start_login();
+  });
+});
 
 setSessions();
 

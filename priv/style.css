@@ -1,3 +1,11 @@
+#browserid .login > img {
+  display: none;
+}
+
+#browserid .login.pending {
+  opacity: 0.5;
+}
+
 #browserid .login.clickable:hover {
   opacity: .75;
   cursor: pointer;
