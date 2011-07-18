@@ -66,7 +66,7 @@ Additionally, the `.picture` div will contain a Gravatar image for the user's em
 To be notified when the login or logout phase completes, use the same functions with a callback.
 
     // This will run when login is done.
-    $.couch.browserid.login(function(error, user) {
+    $.couch.browserid.login(function(event, error, user) {
       if(error)
         return console.log("Something went wrong with login: " + error);
 
@@ -74,7 +74,7 @@ To be notified when the login or logout phase completes, use the same functions 
     });
 
     // This will run when logout is done.
-    $.couch.browserid.logout(function(error) {
+    $.couch.browserid.logout(function(event, error) {
       if(error)
         return console.log("Something went wrong with logout: " + error);
 
