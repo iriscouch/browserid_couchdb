@@ -188,14 +188,21 @@ update_or_create_user_doc(Email, _Verified_obj) -> ok
         of {ok, #doc{deleted=false}=User_doc} -> ok
             , ?LOG_DEBUG("Found existing doc for user: ~s", [Doc_id])
             , {Body} = User_doc#doc.body
-            , case couch_util:get_value(<<"browserid">>, Body)
-                of true -> ok
+            , Is_browserid = couch_util:get_value(<<"browserid">>, Body, false)
+            , Roles        = couch_util:get_value(<<"roles">>    , Body, [])
+            , Is_bid_role  = lists:member(<<"browserid">>, Roles)
+
+            , case {Is_browserid, Is_bid_role}
+                of {true, true} -> ok
+                    % Looks good. Nothing to do.
                     , {noop, User_doc}
                 ; _ -> ok
-                    , ?LOG_DEBUG("Adding browserid flag to existing user: ~s", [Doc_id])
-                    , New_body = couch_util:json_apply_field({<<"browserid">>, true}, {Body})
-                    , New_doc = User_doc#doc{ body = New_body }
-                    , {update, New_doc}
+                    , ?LOG_DEBUG("Adding browserid flag and role to existing user: ~s", [Doc_id])
+                    , Bid_roles = [<<"browserid">> | Roles]
+
+                    , With_role = couch_util:json_apply_field({<<"roles">>, Bid_roles}, {Body})
+                    , With_bid  = couch_util:json_apply_field({<<"browserid">>, true}, With_role)
+                    , {update, User_doc#doc{ body = With_bid }}
                 end
         ; _ -> ok
             , ?LOG_DEBUG("Creating new user from BrowserID login: ~s", [Email])
@@ -203,7 +210,7 @@ update_or_create_user_doc(Email, _Verified_obj) -> ok
                             , body = {[ {<<"_id">>  , Doc_id}
                                       , {<<"type">> , <<"user">>}
                                       , {<<"name">> , Email}
-                                      , {<<"roles">>, []}
+                                      , {<<"roles">>, [ <<"browserid">> ]}
                                       , {<<"browserid">>, true} % XXX
                                       ]}
                             }
