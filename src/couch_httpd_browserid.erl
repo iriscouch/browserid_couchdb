@@ -35,7 +35,21 @@ handle_id_req(#httpd{method='GET'}=Req) -> ok
     ;
 
 % Login handler with Browser ID.
-handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) ->
+handle_id_req(#httpd{method='POST'}=Req) -> ok
+    , case couch_config:get("browserid", "enabled")
+        of "true" -> ok
+            , handle_id_req(enabled, Req)
+        ; _ -> ok
+            % Browserid is disabled in the config.
+            , throw({error, browserid_not_enabled})
+        end
+    ;
+
+handle_id_req(_Req) ->
+    % Send 405
+    not_implemented.
+
+handle_id_req(enabled, #httpd{method='POST', mochi_req=MochiReq}=Req) ->
     ReqBody = MochiReq:recv_body(),
     Form = case MochiReq:get_primary_header_value("content-type") of
         % content type should be json
@@ -57,11 +71,7 @@ handle_id_req(#httpd{method='POST', mochi_req=MochiReq}=Req) ->
         not_implemented;
     {ok, Verified_obj} -> ok
         , send_good_id(Req, Verified_obj)
-    end;
-
-handle_id_req(_Req) ->
-    % Send 405
-    not_implemented.
+    end.
 
 
 verify_id(Assertion, Audience) -> ok
