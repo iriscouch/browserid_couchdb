@@ -206,11 +206,13 @@ update_or_create_user_doc(Email, _Verified_obj) -> ok
                 end
         ; _ -> ok
             , ?LOG_DEBUG("Creating new user from BrowserID login: ~s", [Email])
+            , Salt = couch_uuids:random()
             , New_doc = #doc{ id = Doc_id
                             , body = {[ {<<"_id">>  , Doc_id}
                                       , {<<"type">> , <<"user">>}
                                       , {<<"name">> , Email}
                                       , {<<"roles">>, [ <<"browserid">> ]}
+                                      , {<<"salt">> , Salt}
                                       , {<<"browserid">>, true} % XXX
                                       ]}
                             }
