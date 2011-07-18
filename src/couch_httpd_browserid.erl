@@ -68,7 +68,7 @@ verify_id(Assertion, Audience) -> ok
     % TODO: Verify without depending on the Mozilla crutch verification web service.
     %       * https://wiki.mozilla.org/Identity/Verified_Email_Protocol
     %       * https://github.com/mozilla/browserid/tree/master/verifier
-    , case couch_config:get("httpd", "browserid_verify_url", undefined)
+    , case couch_config:get("browserid", "verify_url", undefined)
         of undefined -> ok
             % Bad config.
             , throw({missing_config_value, "Required config httpd/browserid_verify_url"})
