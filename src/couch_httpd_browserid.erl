@@ -112,13 +112,15 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
             ; 200 -> ok
                 , {Resp} = ?JSON_DECODE(Body)
                 , ?LOG_DEBUG("Verification service response:\n~p", [Resp])
-                , case couch_util:get_value(<<"status">>, Resp)
-                    of <<"okay">> -> ok
+                , Status = couch_util:get_value(<<"status">>, Resp, undefined)
+                , Email  = couch_util:get_value(<<"email">> , Resp, undefined)
+                , case {Status, Email}
+                    of {<<"okay">>, Email} when Email =/= undefined -> ok
                         , ?LOG_DEBUG("BrowserID verified: ~p", [Resp])
                         , {ok, Resp}
-                    ; _Not_ok -> ok
+                    ; _ -> ok
                         , ?LOG_DEBUG("Failed verification from ~s:\n~p", [VerifyURL, Resp])
-                        , {error, failed_verification}
+                        , throw({error, failed_verification}) % TODO: 4xx response
                     end
             end
     end.
