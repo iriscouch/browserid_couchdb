@@ -137,6 +137,21 @@ send_good_id(Req, Verified_obj) -> ok
     .
 
 send_good_id(Req, Verified_obj, Email) -> ok
+    % Create or update user auth doc with access token
+    , case update_or_create_user_doc(Email, Verified_obj)
+        of {ok, #doc{deleted=false}=User_doc} -> ok
+            , send_good_id(Req, Verified_obj, Email, User_doc)
+        ; Error -> ok
+            , ?LOG_ERROR("Fail to update or create user doc for ~s: ~p", [Email, Error])
+            , couch_httpd:send_json(Req, 403, [], {[{error, <<"Unable to update doc">>}]})
+        end
+    .
+
+send_good_id(Req, Verified_obj, Email, User_doc) -> ok
+    % TODO
+    % Finally send a response that includes the AuthSession cookie
+    % generate_cookied_response_json(ID, Req, AccessToken);
+
     % Set the authenticated session cookie.
     , Secret = ?l2b(ensure_cookie_auth_secret())
 
@@ -158,6 +173,59 @@ send_good_id(Req, Verified_obj, Email) -> ok
     %        ]});
     .
 
+
+update_or_create_user_doc(Email, _Verified_obj) -> ok
+    % TODO: Perhaps accumulate Verified_obj.issuer or .audience into the user doc?
+
+    , User_db = ?l2b(couch_config:get("couch_httpd_auth", "authentication_db", "_users"))
+    , Doc_id = <<"org.couchdb.user:", Email/binary>>
+
+    , Admin = #user_ctx{roles=[<<"_admin">>]}
+    , {ok, Db} = couch_db:open_int(User_db, [ {user_ctx,Admin} ])
+
+    % Add a user doc if necessary.
+    , {Action, Doc} = case couch_db:open_doc_int(Db, Doc_id, [])
+        of {ok, #doc{deleted=false}=User_doc} -> ok
+            , ?LOG_DEBUG("Found existing doc for user: ~s", [Doc_id])
+            , {Body} = User_doc#doc.body
+            , case couch_util:get_value(<<"browserid">>, Body)
+                of true -> ok
+                    , {noop, User_doc}
+                ; _ -> ok
+                    , ?LOG_DEBUG("Adding browserid flag to existing user: ~s", [Doc_id])
+                    , New_body = couch_util:json_apply_field({<<"browserid">>, true}, {Body})
+                    , New_doc = User_doc#doc{ body = New_body }
+                    , {update, New_doc}
+                end
+        ; _ -> ok
+            , ?LOG_DEBUG("Creating new user from BrowserID login: ~s", [Email])
+            , New_doc = #doc{ id = Doc_id
+                            , body = {[ {<<"_id">>  , Doc_id}
+                                      , {<<"type">> , <<"user">>}
+                                      , {<<"name">> , Email}
+                                      , {<<"roles">>, []}
+                                      , {<<"browserid">>, true} % XXX
+                                      ]}
+                            }
+            , {update, New_doc}
+        end
+
+    , case Action
+        of noop -> ok
+            , ?LOG_DEBUG("Existing user has used BrowserID before: ~s", [Doc_id])
+            , {ok, Doc}
+        ; update -> ok
+            , ?LOG_DEBUG("Updating user doc:\n~p", [Doc])
+            , case couch_db:update_doc(Db, Doc, [])
+                of {ok, Rev} -> ok
+                    , ?LOG_DEBUG("Updated ~s for BrowserID:\n~p", [Doc_id, Rev])
+                    , {ok, Doc}
+                ; Update_error -> ok
+                    , ?LOG_ERROR("Failed to update ~s: ~p", [Doc_id, Update_error])
+                    , {error, Update_error}
+                end
+        end
+    .
 
 %
 % Utilities
