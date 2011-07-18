@@ -17,21 +17,23 @@ Put this in your Couch app.
 
       <body>
         <div id="browserid">
-          <div class="login"><img src="/_browserid/sign_in_blue.png"></div>
+          <div class="login">
+            <img src="/_browserid/sign_in_blue.png">
+          </div>
           <div class="picture"></div>
         </div>
 
         Hello, BrowserID world!
       </body>
 
-      <!-- Optional (recommended) convenience API -->
+      <!-- Recommended convenience API -->
       <script src="/_utils/script/jquery.js" type="text/javascript"></script>
       <script src="/_browserid/main.js" type="text/javascript"></script>
     </html>
 
 You're done!
 
-That is a complete, working CouchDB login page.  All you need is a `browserid` div with another called `login` inside.
+That is a complete, working CouchDB login page.  All you need is a `#browserid` div a `.login` div inside.
 
 CouchDB supports automatic new account creation and a traditional session cookie. User accounts haven't changed. They are still documents in the `_users` database. You can set roles and replicate them as before. The only changes are
 
