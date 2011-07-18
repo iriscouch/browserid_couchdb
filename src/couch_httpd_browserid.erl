@@ -148,29 +148,32 @@ send_good_id(Req, Verified_obj, Email) -> ok
     .
 
 send_good_id(Req, Verified_obj, Email, User_doc) -> ok
-    % TODO
-    % Finally send a response that includes the AuthSession cookie
-    % generate_cookied_response_json(ID, Req, AccessToken);
-
     % Set the authenticated session cookie.
     , Secret = ?l2b(ensure_cookie_auth_secret())
 
-    % XXX
-    , UserSalt = <<"usersalt">>
-    , UserName = Email
+    , {User_body} = User_doc#doc.body
+    , Salt       = couch_util:get_value(<<"salt">> , User_body, <<"">>)
+    , User_name  = couch_util:get_value(<<"name">> , User_body, null)
+    , User_roles = couch_util:get_value(<<"roles">>, User_body, [])
+    , User_ctx   = {[ {<<"name">> , User_name}
+                    , {<<"roles">>, User_roles}
+                    ]}
+
+    % Sanity check
+    , case User_name
+        of Email -> ok
+        ; _ -> ok
+            , ?LOG_ERROR("User document ~s does not match email: ~s", [User_doc#doc.id, Email])
+            , throw({error, bad_user_document})
+        end
 
     , CurrentTime = make_cookie_time()
-    , Cookie = cookie_auth_cookie(Req, ?b2l(UserName), <<Secret/binary, UserSalt/binary>>, CurrentTime)
+    , Cookie = cookie_auth_cookie(Req, ?b2l(User_name), <<Secret/binary, Salt/binary>>, CurrentTime)
     % , ?LOG_INFO("=========\nCookie\n~p", [Cookie])
 
     , Headers = [Cookie]
-    , couch_httpd:send_json(Req, 200, Headers, {Verified_obj})
-    %, send_json(Req#httpd{req_body=ReqBody}, Code, Headers
-    %        {[
-    %            {ok, true},
-    %            {name, couch_util:get_value(<<"name">>, User, null)},
-    %            {roles, couch_util:get_value(<<"roles">>, User, [])}
-    %        ]});
+    , Response_obj = couch_util:json_apply_field({<<"userCtx">>, User_ctx}, {Verified_obj})
+    , couch_httpd:send_json(Req, 200, Headers, Response_obj)
     .
 
 
