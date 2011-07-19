@@ -85,7 +85,7 @@ To be notified when the login or logout phase completes, use the same functions 
 
 ### Advanced usage
 
-If you are a BrowserID whiz and prefer to do your own thing, then include only the `/_browserid/include.js` file and no others. To verify your membership assertion, POST an `application/json` body to `/_browserid`, such as this:
+If you are a BrowserID whiz and prefer to do your own thing, include only the `/_browserid/include.js` file and no others. (You can also use `https://browserid.org/include.js` if you don't trust us.) To verify your membership assertion, POST an `application/json` body to `/_browserid`, such as this:
 
     { "assertion": "<the assertion string goes here>"
     , "audience" : "example.com:80"
@@ -95,9 +95,13 @@ The response will be the same as `https://browserid.org/verify`. That URL is cur
 
 ## Building
 
-Use Build CouchDB: https://github.com/iriscouch/build-couchdb
+If you hate Freedom, just sign up for an [Iris Couch][ic] account, since they run hosted CouchDB with this plugin.
+
+To build for yourself, use Build CouchDB: https://github.com/iriscouch/build-couchdb
 
     rake plugin="git://github.com/iriscouch/browserid_couchdb origin/master"
+
+[ic]: http://www.iriscouch.com/service
 
 ## Installation
 
