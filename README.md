@@ -4,7 +4,9 @@ This is a plugin for CouchDB to support Mozilla's BrowserID standard.
 
 ## So Simple
 
-Put this in your Couch app.
+First, for security reasons, BrowserID is disabled by default. Go to Futon's *Configuration* section. Look for *BrowserID* and change *enabled* to `true`.
+
+Good. Put this in your Couch app.
 
     <!DOCTYPE html>
     <html>
