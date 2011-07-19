@@ -136,3 +136,11 @@ Next, teach rebar where to find CouchDB, and teach Erlang and Couch where to fin
 You're ready. Run this every time you change the code:
 
     ./rebar compile && ../couchdb/utils/run -i
+
+## The Test Suite Guarantee
+
+We at Iris Couch prefer on unit tests and test-driven development. A test suite is just the grown-up thing to do. Unfortunately, this project lacks such tests.
+
+If you are interested in CouchDB development and wish to join the community, we need Javascript unit tests! Ultimately, we hope for a suite to integrate into Futon, however at this time, anything will do! We can port it later.
+
+NodeJS, jQuery, Rhino, Futon--whatever you want. Send us a pull request and we can get this work underway!
