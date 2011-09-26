@@ -23,6 +23,25 @@
 %% * Possibly auto-create user doc in browserid_authentication_handler/1
 %% * Do something sane with providers other than browserid.org
 
+% hash_if_required looks for hash_secret in browserid section of config
+% If it exist and isn't an empty string, uses it as hmac key according to code from
+% http://stackoverflow.com/questions/4193543/erlang-calculating-hmac-sha1-example/4202361#4202361
+% If missing or empty (i.e. admin doesn't want to hash usernames), simply returns the argument
+% (this is the default)
+% If you use hash_secret, make sure the string is long enough and cryptographically random
+% Tip: use one of the strings from https://api.wordpress.org/secret-key/1.1/ :)
+
+hash_if_required(Email) -> ok
+    , Hashkey = couch_config:get("browserid", "hash_secret", undefined)
+    , case Hashkey
+        of undefined -> ok
+            , Email
+        ; Key -> ok
+            , <<Mac:160/integer>> = crypto:sha_mac(?l2b(Key),Email)
+            , ?l2b(lists:flatten(io_lib:format("~40.16.0b", [Mac])))
+        end
+    .
+
 handle_id_req(#httpd{method='GET'}=Req) -> ok
     , case code:priv_dir(browserid_couchdb)
         of {error, bad_name} -> ok
@@ -126,8 +145,14 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
                 , Email  = couch_util:get_value(<<"email">> , Resp, undefined)
                 , case {Status, Email}
                     of {<<"okay">>, Email} when Email =/= undefined -> ok
-                        , ?LOG_DEBUG("BrowserID verified: ~p", [Resp])
-                        , {ok, Resp}
+                        , Newresp = [ {<<"status">>,<<"okay">>}
+                                    , {<<"email">>,hash_if_required(Email)}
+                                    , {<<"audience">>,couch_util:get_value(<<"audience">> , Resp, undefined)}
+                                    , {<<"valid-until">>,couch_util:get_value(<<"valid-until">> , Resp, undefined)}
+                                    , {<<"issuer">>,couch_util:get_value(<<"issuer">> , Resp, undefined)}
+                                    ]
+                        , ?LOG_DEBUG("BrowserID verified: ~p", [Newresp])
+                        , {ok, Newresp}
                     ; _ -> ok
                         , ?LOG_DEBUG("Failed verification from ~s:\n~p", [VerifyURL, Resp])
                         , throw({error, failed_verification}) % TODO: 4xx response

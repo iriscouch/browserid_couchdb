@@ -4,7 +4,7 @@ This is a plugin for CouchDB to support Mozilla's BrowserID standard.
 
 ## So Simple
 
-First, for security reasons, BrowserID is disabled by default. Go to Futon's *Configuration* section. Look for *BrowserID* and change *enabled* to `true`.
+First, for security reasons, BrowserID is disabled by default. Go to Futon's *Configuration* page. Look for the *browserid* section, and change the *enabled* option to `true`.
 
 Good. Put this in your Couch app.
 
@@ -41,6 +41,19 @@ CouchDB supports automatic new account creation and a traditional session cookie
 
 * Users log in through BrowserID instead of passwords
 * The first time a user logs in, CouchDB will create an account for them.
+
+### obscuring email addresses (optional, but recommended)
+
+For privacy reasons, it is advised to add to the *browserid* section an option called *hash_secret*
+containing a random string (use the *add a new section* link at the bottom of futon's *configuration* page).
+Doing this will give BrowserID users names that don't look like their email addressr, protecting them
+from harvesting by spammers and other attacks.
+
+  * The *hash_secret* string should be long and cryptographically random
+    (for example, you can use one of the random strings that [https://api.wordpress.org/secret-key/1.1/](https://api.wordpress.org/secret-key/1.1/) generates).
+
+  * Once you decide whether to use a *hash_secret* or not, and what value to use for it, you shouldn't change this setting,
+    or existing BrowserID users will never be able to login as "the same person" again.
 
 ### Logging in and out programatically
 
