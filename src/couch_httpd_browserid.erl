@@ -108,7 +108,7 @@ verify_id(Assertion, Audience) -> ok
 
 
 verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
-    VerifyQS = "?assertion=" ++ Assertion ++ "&audience=" ++ Audience,
+    VerifyQS = "assertion=" ++ Assertion ++ "&audience=" ++ Audience,
 
     %% VerifyURL = ?l2b(couch_util:get_value("verify_url", Form,
     %%                                       "https://browserid.org/verify")),
@@ -122,8 +122,9 @@ verify_id_with_crutch(VerifyURL, Assertion, Audience) ->
 
     {ok, Worker} = ibrowse:spawn_link_worker_process(VerifyURL),
     case ibrowse:send_req_direct(
-        Worker, VerifyURL ++ VerifyQS,
-        [{content_type, "application/json"}], get) of
+        Worker, VerifyURL,
+        [{content_type, "application/x-www-form-urlencoded"}],
+        post, VerifyQS) of
     {error, Reason} ->
         ?LOG_INFO("Error on browserid request: ~p", [Reason]),
         {error, Reason};
