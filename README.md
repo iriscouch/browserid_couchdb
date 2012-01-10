@@ -44,10 +44,7 @@ CouchDB supports automatic new account creation and a traditional session cookie
 
 ### obscuring email addresses (optional, but recommended)
 
-For privacy reasons, it is advised to add to the *browserid* section an option called *hash_secret*
-containing a random string (use the *add a new section* link at the bottom of futon's *configuration* page).
-Doing this will give BrowserID users names that don't look like their email addressr, protecting them
-from harvesting by spammers and other attacks.
+For privacy, set `browserid/hash_secret` to a random string. (Use the *add a new section* link at the bottom of futon's *configuration* page.) This will give BrowserID users names that don't look like their email address, protecting them from harvesting, *at a cost* of generating different document IDs for the same user on different Couches.
 
   * The *hash_secret* string should be long and cryptographically random
     (for example, you can use one of the random strings that [https://api.wordpress.org/secret-key/1.1/](https://api.wordpress.org/secret-key/1.1/) generates).
