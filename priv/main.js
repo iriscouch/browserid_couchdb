@@ -17,6 +17,9 @@ function gotVerifiedEmail(assertion) {
   if (assertion) {
     // Verify through CouchDB.
     var url = '/_browserid';
+    if(typeof window != 'undefined' && window && window.BROWSERID_URL)
+      url = window.BROWSERID_URL;
+
     var to_verify = { 'assertion': window.encodeURIComponent(assertion)
                     , 'audience' : window.encodeURIComponent(window.location.host)
                     };
