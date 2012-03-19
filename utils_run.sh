@@ -20,4 +20,4 @@ set -x
 ./rebar compile
 cd "$couchdb"
 make dev
-./utils/run
+./utils/run "$@"
