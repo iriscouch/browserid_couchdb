@@ -6,7 +6,7 @@
 var fs = require('fs')
 var util = require('util')
 
-var SP = require('static-plus').defaults({'cooldown':1000})
+var SP = require('static-plus')
 
 function main() {
   var DB = process.argv[2];
