@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html class="site">
+  <head>
+    <title>{{title}}</title>
+    <script src="{{couchdb}}/_browserid/include.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="{{couchdb}}/_browserid/style.css">
+  </head>
+  <body>
+    <h1>{{title}}</h1>
+    <div id="browserid">
+      <div class="login">
+        <img src="{{couchdb}}/_browserid/sign_in_blue.png">
+      </div>
+      <div class="picture"></div>
+    </div>
+
+    <p>Hello, BrowserID world!</p>
+
+    <hr>
+    <small>
+      Hi! I am <a href="{{github}}">the simplest possible BrowserID Couch app</a>
+    </small>
+
+    <!-- BrowserID Convenience API -->
+    <script src="{{couchdb}}/_utils/script/jquery.js" type="text/javascript"></script>
+    <script src="{{couchdb}}/_browserid/main.js" type="text/javascript"></script>
+  </body>
+</html>
