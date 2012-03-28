@@ -18,7 +18,7 @@ function main() {
   builder.read_only = true
   builder.target = DB + '/_design/browserid'
 
-  builder.template = __dirname + '/www/page.tmpl.html'
+  builder.template = __dirname + '/page.tmpl.html'
 
   var SITE_ROOT = '/browserid/_design/browserid/_rewrite'
   builder.helpers.site    = function(ctx) { return SITE_ROOT }
