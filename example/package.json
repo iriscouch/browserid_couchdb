@@ -1,0 +1,11 @@
+{ "name"   : "browserid_example"
+, "version": "0.1.0"
+, "description": "CouchDB BrowserID example application"
+, "author": { "name": "Jason Smith" , "email": "jhs@iriscouch.com" }
+, "private": true
+, "engines": [ "node" ]
+
+, "dependencies": { "static-plus": "~0.2.2"
+                  , "request": "~2.2.9"
+                  }
+}
