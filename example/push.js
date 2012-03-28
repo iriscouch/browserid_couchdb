@@ -31,7 +31,7 @@ function main() {
   // The entire site has only one page, the landing page.
   builder.doc({ '_id'   : ''
               , 'title' : 'BrowserID on CouchDB'
-              , 'github': 'https://github.com/iriscouch/browserid_couchdb/tree/master/example'
+              , 'github': 'https://github.com/iriscouch/browserid_couchdb/blob/master/example/page.tmpl.html'
               })
 
   builder.deploy()
