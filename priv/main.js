@@ -13,6 +13,13 @@ function loggedIn(email) {
   $(document).trigger('on_browserid_login', [null, info]);
 }
 
+function notLoggedIn(info) {
+  setSessions();
+
+  info = info || {}
+  $(document).trigger('on_browserid_logout', [null, info]);
+}
+
 function gotVerifiedEmail(assertion) {
   if (assertion) {
     // Verify through CouchDB.
@@ -74,6 +81,7 @@ $(document).ready(function() {
       loggedIn(session.userCtx.name);
     } else {
       // Not logged in.
+      notLoggedIn({'not_logged_in':true});
       widget.find('> img').show();
       widget.addClass("clickable");
       widget.click(function() {
