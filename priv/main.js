@@ -4,7 +4,7 @@ function setSessions(val) {
   if (navigator.id) {
     navigator.id.sessions = val ? val : [ ];
   }
-} 
+}
 
 function loggedIn(email) {
   var info = {"email":email};
