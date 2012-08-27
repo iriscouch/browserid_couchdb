@@ -6,18 +6,14 @@ function setSessions(val) {
   }
 }
 
-function loggedIn(email) {
-  var info = {"email":email};
-  setSessions([ info ]);
-
-  $(document).trigger('on_browserid_login', [null, info]);
+function loggedIn(userCtx) {
+  setSessions([ {'email':userCtx.name} ]);
+  $(document).trigger('on_browserid_login', [null, userCtx]);
 }
 
-function notLoggedIn(info) {
+function notLoggedIn(userCtx) {
   setSessions();
-
-  info = info || {}
-  $(document).trigger('on_browserid_logout', [null, info]);
+  $(document).trigger('on_browserid_logout', [null, userCtx]);
 }
 
 function gotVerifiedEmail(assertion) {
@@ -38,7 +34,7 @@ function gotVerifiedEmail(assertion) {
       data: JSON.stringify(to_verify),
       dataType: "json",
       success: function(data, textStatus, jqXHR) {
-        loggedIn(data.email);
+        loggedIn(data.userCtx);
       },
 
       error: function(jqXHR, textStatus, errorThrown) {
@@ -78,10 +74,10 @@ $(document).ready(function() {
 
     if(session && session.userCtx && is_email.test(session.userCtx.name)) {
       // Logged in.
-      loggedIn(session.userCtx.name);
+      loggedIn(session.userCtx);
     } else {
       // Not logged in.
-      notLoggedIn({'not_logged_in':true});
+      notLoggedIn(session.userCtx);
       widget.find('> img').show();
       widget.addClass("clickable");
       widget.click(function() {
