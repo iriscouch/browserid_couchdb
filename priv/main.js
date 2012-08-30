@@ -153,10 +153,11 @@ $.couch.browserid.logout = function(callback) {
 
 // Some UI tricks for login and logout.
 
-$.couch.browserid.login(function(ev, er, data) {
+$.couch.browserid.login(function(ev, er, userCtx) {
   if(er)
     return;
 
+  var email = userCtx.name;
   var widget = $("#browserid .login").removeClass('clickable');
 
   var bid_icon = widget.find('> img');
@@ -165,12 +166,12 @@ $.couch.browserid.login(function(ev, er, data) {
   widget.removeClass('pending');
 
   widget.append($('<span>').text("Hi ").addClass('greeting'))
-   .append($('<span>').text(data.email).addClass('username'))
+   .append($('<span>').text(email).addClass('username'))
    .append($('<span>').text('.').addClass('farewell'));
 
   widget.unbind('click');
 
-  var iurl = 'http://www.gravatar.com/avatar/' + Crypto.MD5($.trim(data.email).toLowerCase()) + "?s=32";
+  var iurl = 'http://www.gravatar.com/avatar/' + Crypto.MD5($.trim(email).toLowerCase()) + "?s=32";
   var gravatar_img = $("<img>").attr('src', iurl);
   gravatar_img.appendTo($("#browserid .picture"));
 
