@@ -57,7 +57,12 @@ handle_id_req(#httpd{method='GET'}=Req) -> ok
 handle_id_req(#httpd{method='POST'}=Req) -> ok
     , case couch_config:get("browserid", "enabled")
         of "true" -> ok
-            , handle_id_req(enabled, Req)
+            , case couch_config:get("browserid", "audience", undefined)
+                of undefined -> ok
+                    , throw({error, no_browserid_audience})
+                ; Audience -> ok
+                    , handle_id_req(enabled, Audience, Req)
+                end
         ; _ -> ok
             % Browserid is disabled in the config.
             , throw({error, browserid_not_enabled})
@@ -68,7 +73,7 @@ handle_id_req(_Req) ->
     % Send 405
     not_implemented.
 
-handle_id_req(enabled, #httpd{method='POST', mochi_req=MochiReq}=Req) ->
+handle_id_req(enabled, Audience, #httpd{method='POST', mochi_req=MochiReq}=Req) ->
     ReqBody = MochiReq:recv_body(),
     Form = case MochiReq:get_primary_header_value("content-type") of
         % content type should be json
@@ -83,7 +88,6 @@ handle_id_req(enabled, #httpd{method='POST', mochi_req=MochiReq}=Req) ->
             []%couch_httpd:send_json(Req, 406, {error, method_not_allowed})
     end,
     Assertion = couch_util:get_value("assertion", Form, ""),
-    Audience = MochiReq:get_header_value("host"),
     case verify_id(Assertion, Audience) of
     {error, _Reason} ->
         % Send client an error response, couch_util:send_err ...
