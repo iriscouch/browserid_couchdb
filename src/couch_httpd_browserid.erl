@@ -23,7 +23,20 @@
 %% * Possibly auto-create user doc in browserid_authentication_handler/1
 %% * Do something sane with providers other than browserid.org
 
-% hash_if_required looks for hash_secret in browserid section of config
+% hash_if_required looks for hash_algorithm in browserid section of config
+% If it exist and isn't an empty string, uses that algorithm.
+% If it does not exist, check hmac to provide backward compatibility.
+hash_if_required(Email) -> ok
+    , Algo = couch_config:get("browserid", "hash_algorithm", undefined)
+    , case Algo
+        of undefined -> ok
+            , hash_if_required(hmac, Email)
+        ; Algorithm -> ok
+            , hash_if_required(Algorithm, Email)
+        end
+    .
+
+% hash_if_required (hmac) looks for hash_secret in browserid section of config
 % If it exist and isn't an empty string, uses it as hmac key according to code from
 % http://stackoverflow.com/questions/4193543/erlang-calculating-hmac-sha1-example/4202361#4202361
 % If missing or empty (i.e. admin doesn't want to hash usernames), simply returns the argument
@@ -31,7 +44,7 @@
 % If you use hash_secret, make sure the string is long enough and cryptographically random
 % Tip: use one of the strings from https://api.wordpress.org/secret-key/1.1/ :)
 
-hash_if_required(Email) -> ok
+hash_if_required(hmac, Email) ->ok
     , Hashkey = couch_config:get("browserid", "hash_secret", undefined)
     , case Hashkey
         of undefined -> ok
@@ -40,7 +53,32 @@ hash_if_required(Email) -> ok
             , <<Mac:160/integer>> = crypto:sha_mac(?l2b(Key),Email)
             , ?l2b(lists:flatten(io_lib:format("~40.16.0b", [Mac])))
         end
+    ;
+
+% hash_if_required (gravatar) looks provides the same hasing as gravatar, 
+% and is based on the code from https://github.com/kanso/gravatar/blob/master/gravatar.js#L17
+hash_if_required(gravatar, Email) ->ok
+    , Trim = re:replace(Email, "(^\\s+)|(\\s+$)", "", [global,{return,list}])
+    , Lower = string:to_lower(Trim)
+    , <<Md5:128/integer>> = crypto:md5(Lower)
+    , ?l2b(lists:flatten(io_lib:format("~40.16.0b", [Md5])))
+    ;
+
+% hash_if_required (none) returns the Email
+hash_if_required(none, Email) -> ok
+    , hash_not_required(Email)
+    ;
+
+% hash_if_required (_) returns the Email, and warns user.
+hash_if_required(_, Email) -> ok
+    , Message = <<"Invalid hash_algorithm specified. Using none for hashing.">>
+    , ?LOG_ERROR("~s", [Message])
+    , hash_not_required(Email)
     .
+
+hash_not_required(Email) ->ok
+    , Email.
+
 
 handle_id_req(#httpd{method='GET'}=Req) -> ok
     , case code:priv_dir(browserid_couchdb)
