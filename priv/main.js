@@ -172,6 +172,10 @@ $.couch.browserid.login(function(ev, er, userCtx) {
   widget.unbind('click');
 
   var iurl = 'https://www.gravatar.com/avatar/' + Crypto.MD5($.trim(email).toLowerCase()) + "?s=32";
+  if (email.indexOf('@') === -1) {
+    // it is probably already a gravatar hash
+    iurl = 'https://www.gravatar.com/avatar/' + email + "?s=32";
+  }
   var gravatar_img = $("<img>").attr('src', iurl);
   gravatar_img.appendTo($("#browserid .picture"));
 
