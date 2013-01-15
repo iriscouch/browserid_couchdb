@@ -26,7 +26,8 @@
 % hash_if_required looks for hash_algorithm in browserid section of config
 % if not found, default to hmac to keep backward compat.
 hash_if_required(Email) -> ok
-    , Algorithm = couch_config:get("browserid", "hash_algorithm", hmac)
+    , Algorithm = couch_config:get("browserid", "hash_algorithm", "hmac")
+    , ?LOG_DEBUG("Algorithm chosen: ~s", [Algorithm])
     , hash_if_required(Algorithm, Email).
 
 % hash_if_required (hmac) looks for hash_secret in browserid section of config
@@ -37,7 +38,7 @@ hash_if_required(Email) -> ok
 % If you use hash_secret, make sure the string is long enough and cryptographically random
 % Tip: use one of the strings from https://api.wordpress.org/secret-key/1.1/ :)
 
-hash_if_required(hmac, Email) -> ok
+hash_if_required("hmac", Email) -> ok
     , Hashkey = couch_config:get("browserid", "hash_secret", undefined)
     , case Hashkey
         of undefined -> ok
@@ -50,18 +51,18 @@ hash_if_required(hmac, Email) -> ok
 
 % hash_if_required (gravatar) looks provides the same hasing as gravatar, 
 % and is based on the code from https://github.com/kanso/gravatar/blob/master/gravatar.js#L17
-hash_if_required(gravatar, Email) -> ok
+hash_if_required("gravatar", Email) -> ok
     , Trim = re:replace(Email, "(^\\s+)|(\\s+$)", "", [global,{return,list}])
     , Lower = string:to_lower(Trim)
     , <<Md5:128/integer>> = crypto:md5(Lower)
-    , ?l2b(lists:flatten(io_lib:format("~40.16.0b", [Md5])))
+    , ?l2b(lists:flatten(io_lib:format("~32.16.0b", [Md5])))
     ;
 
-hash_if_required(none, Email) -> Email;
+hash_if_required("none", Email) -> Email;
 
 % hash_if_required (_) returns the Email, and warns user.
 hash_if_required(_, Email) -> ok
-    , Message = <<"No hash_algorithm specified. Not using hash email address.">>
+    , Message = <<"No hash_algorithm specified. Not hashing email address.">>
     , ?LOG_ERROR("~s", [Message])
     , hash_if_required(none, Email)
     .
